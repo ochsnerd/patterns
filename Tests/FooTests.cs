@@ -3,8 +3,8 @@ namespace Tests;
 public class FooTests
 {
     [Test]
-    public void Add_ReturnsSumOfArguments()
+    public void AddReturnsSumOfArguments()
     {
-        Foo.Bar.Add(2, 3).Should().Be(5);
+        TypedId.Foo.Add(2, 3).Should().Be(5);
     }
 }

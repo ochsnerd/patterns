@@ -1,3 +1,1 @@
-using Foo;
-
-Console.WriteLine(Bar.Add(2, 3));
+Console.WriteLine(TypedId.Foo.Add(2, 3));

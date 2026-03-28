@@ -19,7 +19,6 @@
           DOTNET_ENVIRONMENT = "Development";
           buildInputs = with pkgs; [
             dotnet-sdk_10
-            csharpier
           ];
         };
       }
