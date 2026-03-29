@@ -1,12 +1,12 @@
 using TypedId;
 
 var guid = Guid.NewGuid();
-IParsable<FooId> fooId = FooId.Parse(guid.ToString());
+IParsable<Id<Foo>> fooId = Id<Foo>.Parse(guid.ToString());
 
-EntityDictionary<FooId, Foo> values =
+EntityDictionary<Foo> values =
 [
-    new() { Id = FooId.NewId(), Name = "First" },
-    new() { Id = FooId.NewId(), Name = "Second" },
+    new() { Id = Id<Foo>.NewId(), Name = "First" },
+    new() { Id = Id<Foo>.NewId(), Name = "Second" },
 ];
 
 Console.WriteLine(fooId);

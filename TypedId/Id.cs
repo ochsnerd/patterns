@@ -5,36 +5,38 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 
 [JsonConverter(typeof(IdJsonConverterFactory))]
-public record Id<T>(Guid Value) : IParsable<T>
-    where T : Id<T>, IIdFactory<T>
+public readonly record struct Id<TEntity>(Guid Value) : IParsable<Id<TEntity>>
+    where TEntity : IIdentifiable<TEntity>
 {
     public Guid Value { get; } =
         Value != Guid.Empty ? Value : throw new ArgumentException("Value cannot be empty", nameof(Value));
 
-    public static T Parse(string s) => Parse(s, provider: null);
+    public static Id<TEntity> NewId() => new(Guid.NewGuid());
 
-    public static bool TryParse([NotNullWhen(true)] string? s, [NotNullWhen(true)] out T? result) =>
+    public static Id<TEntity> Parse(string s) => Parse(s, provider: null);
+
+    public static bool TryParse([NotNullWhen(true)] string? s, [MaybeNullWhen(false)] out Id<TEntity> result) =>
         TryParse(s, provider: null, out result);
 
-    public static T Parse(string s, IFormatProvider? provider) =>
+    public static Id<TEntity> Parse(string s, IFormatProvider? provider) =>
         Guid.Parse(s) is Guid guid && guid != Guid.Empty
-            ? T.Create(guid)
-            : throw new FormatException($"Invalid {typeof(T).Name} format: {s}");
+            ? new Id<TEntity>(guid)
+            : throw new FormatException($"Invalid Id<{typeof(TEntity).Name}> format: {s}");
 
     public static bool TryParse(
         [NotNullWhen(true)] string? s,
         IFormatProvider? provider,
-        [NotNullWhen(true)] out T? result
+        [MaybeNullWhen(false)] out Id<TEntity> result
     )
     {
         if (!Guid.TryParse(s, out var guid) || guid == Guid.Empty)
         {
-            result = null;
+            result = default;
             return false;
         }
-        result = T.Create(guid);
+        result = new Id<TEntity>(guid);
         return true;
     }
 
-    public sealed override string ToString() => Value.ToString();
+    public override string ToString() => Value.ToString();
 }

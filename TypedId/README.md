@@ -16,37 +16,35 @@ TransferFunds(toAccountId, fromAccountId, 100m);
 Strongly-typed IDs catch these errors at compile time:
 
 ```csharp
-void TransferFunds(AccountId from, AccountId to, decimal amount);
+void TransferFunds(Id<Account> from, Id<Account> to, decimal amount);
 
-// Won't compile: CustomerId cannot be used where AccountId is expected
+// Won't compile: Id<Customer> cannot be used where Id<Account> is expected
 TransferFunds(customerId, accountId, 100m);
 ```
 
 ## Implementation
 
-- `Id<T>` — base record wrapping a `Guid`, implements `IParsable<T>`
-- `EntityDictionary<TId, TEntity>` - store entities based on their id
-- `IdJsonConverterFactory` — System.Text.Json serialization support
+- `Id<TEntity>` — generic record struct wrapping a `Guid`, implements `IParsable<Id<TEntity>>`
+- `IIdentifiable<TSelf>` — interface for entities with an `Id<TSelf>` property
+- `EntityDictionary<TEntity>` — store entities based on their id
+- `IdJsonConverterFactory` — System.Text.Json serialization support. In a key-context, serializes as a string; otherwise, as an object with a single `Value` property to allow deserialization without a custom converter (e.g. in javascript).
 
 ## Usage
 
-Define a new ID type:
+Define an entity with a typed ID:
 
 ```csharp
-public record OrderId(Guid Value) : Id<OrderId>(Value), IIdFactory<OrderId>
+public class Order : IIdentifiable<Order>
 {
-    public static OrderId Create(Guid value) => new(value);
-    public static OrderId NewId() => Create(Guid.NewGuid());
+    public required Id<Order> Id { get; init; }
 }
 ```
 
-Use in entities and APIs:
+Use in APIs:
 
 ```csharp
-public class Order : IIdentifiableBy<OrderId>
-{
-    public required OrderId Id { get; init; }
-}
+public Order GetOrder(Id<Order> id) => ...
 
-public Order GetOrder(OrderId id) => ...
+var orderId = Id<Order>.NewId();
+var parsed = Id<Order>.Parse("550e8400-e29b-41d4-a716-446655440000");
 ```

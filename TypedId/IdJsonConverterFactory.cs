@@ -6,12 +6,12 @@ using System.Text.Json.Serialization;
 public class IdJsonConverterFactory : JsonConverterFactory
 {
     public override bool CanConvert(Type typeToConvert) =>
-        typeToConvert.BaseType is { IsGenericType: true } baseType
-        && baseType.GetGenericTypeDefinition() == typeof(Id<>);
+        typeToConvert.IsGenericType && typeToConvert.GetGenericTypeDefinition() == typeof(Id<>);
 
     public override JsonConverter CreateConverter(Type typeToConvert, JsonSerializerOptions options)
     {
-        var converterType = typeof(IdJsonConverter<>).MakeGenericType(typeToConvert);
+        var entityType = typeToConvert.GetGenericArguments()[0];
+        var converterType = typeof(IdJsonConverter<>).MakeGenericType(entityType);
         return (JsonConverter)Activator.CreateInstance(converterType)!;
     }
 }

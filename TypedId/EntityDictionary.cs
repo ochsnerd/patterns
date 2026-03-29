@@ -1,8 +1,7 @@
 namespace TypedId;
 
-public class EntityDictionary<TId, TEntity> : Dictionary<TId, TEntity>
-    where TEntity : IIdentifiableBy<TId>
-    where TId : Id<TId>, IIdFactory<TId>
+public class EntityDictionary<TEntity> : Dictionary<Id<TEntity>, TEntity>
+    where TEntity : IIdentifiable<TEntity>
 {
     public void Add(TEntity entity) => Add(entity.Id, entity);
 
