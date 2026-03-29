@@ -1,6 +1,8 @@
 namespace TypedId;
 
-public static class Foo
+public class Foo : IIdentifiableBy<FooId>
 {
-    public static int Add(int a, int b) => a + b;
+    public required FooId Id { get; init; }
+
+    public string Name { get; set; } = string.Empty;
 }

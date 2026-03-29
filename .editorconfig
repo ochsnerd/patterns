@@ -52,12 +52,20 @@ csharp_prefer_simple_using_statement = true:suggestion
 # Namespace preferences
 csharp_style_namespace_declarations = file_scoped:warning
 
+# The behavior of <Type.Parse> could vary based on the current user's locale settings.
+dotnet_diagnostic.CA1305.severity = none
+
 # CS1591: Missing XML comment for publicly visible type or member
 dotnet_diagnostic.CS1591.severity = none
 
-# StyleCop - disable noisy rules
+# StyleCop
 # dotnet_diagnostic.SA0001.severity = none
-# dotnet_diagnostic.SA1101.severity = none
+# Overruled by csharpier
+dotnet_diagnostic.SA1009.severity = none
+dotnet_diagnostic.SA1111.severity = none
+dotnet_diagnostic.SA1513.severity = none
+
+dotnet_diagnostic.SA1101.severity = none
 dotnet_diagnostic.SA1633.severity = none
 # dotnet_diagnostic.SA1413.severity = none
 # dotnet_diagnostic.SA1200.severity = none
@@ -67,6 +75,11 @@ dotnet_diagnostic.SA1600.severity = none
 
 # Meziantou - enable string comparison warning
 # dotnet_diagnostic.MA0006.severity = warning
+# Superseded by CA1100
+dotnet_diagnostic.MA0018.severity = none
 
 # IDE rules
 # dotnet_diagnostic.IDE0005.severity = warning
+
+# SonarLint
+dotnet_diagnostic.S2326.severity = none
