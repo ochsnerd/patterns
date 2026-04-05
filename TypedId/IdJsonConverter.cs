@@ -13,10 +13,22 @@ public class IdJsonConverter<TEntity> : JsonConverter<Id<TEntity>>
             throw new JsonException();
         }
 
-        reader.Read(); // PropertyName "Value"
-        reader.Read(); // The actual value
+        reader.Read();
+        if (reader.TokenType != JsonTokenType.PropertyName)
+        {
+            throw new JsonException("Expected PropertyName token.");
+        }
+
+        var propName = reader.GetString();
+        if (!string.Equals(propName, "Value", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new JsonException($"Unexpected property: {propName}");
+        }
+
+        reader.Read();
         var value = reader.GetGuid();
-        reader.Read(); // EndObject
+
+        reader.Read();
 
         return new Id<TEntity>(value);
     }
@@ -24,7 +36,9 @@ public class IdJsonConverter<TEntity> : JsonConverter<Id<TEntity>>
     public override void Write(Utf8JsonWriter writer, Id<TEntity> value, JsonSerializerOptions options)
     {
         writer.WriteStartObject();
-        writer.WriteString("Value", value.Value);
+        var propertyName = options.PropertyNamingPolicy?.ConvertName("Value") ?? "Value";
+
+        writer.WriteString(propertyName, value.Value);
         writer.WriteEndObject();
     }
 
