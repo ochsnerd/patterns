@@ -5,10 +5,10 @@
 Raw `Guid` or `string` identifiers lose type information, allowing bugs like:
 
 ```csharp
-void TransferFunds(Guid fromAccount, Guid toAccount, decimal amount);
+void AssignToTeam(Guid teamId, Guid playerId);
 
 // Compiles fine, but arguments are swapped
-TransferFunds(toAccountId, fromAccountId, 100m);
+AssignToTeam(playerId, teamId);
 ```
 
 ## Solution
@@ -16,10 +16,10 @@ TransferFunds(toAccountId, fromAccountId, 100m);
 Strongly-typed IDs catch these errors at compile time:
 
 ```csharp
-void TransferFunds(Id<Account> from, Id<Account> to, decimal amount);
+void AssignToTeam(Id<Team> teamId, Id<Player> playerId);
 
-// Won't compile: Id<Customer> cannot be used where Id<Account> is expected
-TransferFunds(customerId, accountId, 100m);
+// Won't compile: Id<Player> cannot be used where Id<Team> is expected
+AssignToTeam(playerId, teamId);
 ```
 
 ## Implementation
