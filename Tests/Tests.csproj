@@ -23,5 +23,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\TypedId\TypedId.csproj" />
+    <ProjectReference Include="..\JsonRepository\JsonRepository.csproj" />
   </ItemGroup>
 </Project>
