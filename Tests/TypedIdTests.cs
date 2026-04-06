@@ -1,5 +1,6 @@
 namespace Tests;
 
+using JsonRepository;
 using TypedId;
 using FooId = TypedId.Id<TypedId.Foo>;
 

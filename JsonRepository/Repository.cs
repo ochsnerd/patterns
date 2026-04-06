@@ -1,18 +1,18 @@
+namespace JsonRepository;
+
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Nito.AsyncEx;
 
-namespace ManagementServer.Infrastructure.Persistence;
-
-public abstract class Repository<TData>(FileSystemHelper fileSystemHelper) : IOnQuit, IInitialize, IDisposable
+public abstract class Repository<TData> : IOnQuit, IInitialize, IDisposable
     where TData : class, IDeepCloneable<TData>, IMigratable, new()
 {
     private readonly SemaphoreSlim saveLock = new(1, 1);
-    private readonly JsonSerializerOptions jsonSerializerOptions = AppJsonSerializerOptions.Default;
+    private readonly JsonSerializerOptions jsonSerializerOptions = new();
     private Debouncer debouncer = null!;
     private TData data = null!;
 
-    protected abstract JsonMigrator Migrator { get; }
+    protected abstract Migrator Migrator { get; }
 
     private static string FilePath => $"{typeof(TData).Name}.json";
 
@@ -22,15 +22,18 @@ public abstract class Repository<TData>(FileSystemHelper fileSystemHelper) : IOn
     {
         try
         {
-            await using FileStream reader = fileSystemHelper.OpenRead(FilePath);
-            var node = await JsonNode.ParseAsync(reader)
-                ?? throw new InvalidOperationException("Deserialized JSON is null");
+            await using FileStream reader = new(FilePath, new FileStreamOptions { Options = FileOptions.Asynchronous });
+            var node =
+                await JsonNode.ParseAsync(reader).ConfigureAwait(false) ?? throw new InvalidOperationException("Deserialized JSON is null");
 
-            await Migrator.Migrate(node);
+            await Migrator.Migrate(node).ConfigureAwait(false);
 
-            data = node.Deserialize<TData>(jsonSerializerOptions)
+            data =
+                node.Deserialize<TData>(jsonSerializerOptions)
                 ?? throw new InvalidOperationException("Deserialized JSON is null");
         }
+
+        // intentionally crash on JsonException to prevent overwriting unexpected data
         catch (Exception exception) when (exception is FileNotFoundException or DirectoryNotFoundException)
         {
             data = new();
@@ -44,11 +47,9 @@ public abstract class Repository<TData>(FileSystemHelper fileSystemHelper) : IOn
         };
     }
 
-    public Task<T> Read<T>(Func<TData, Task<T>> reader) =>
-        Worker.Factory.Run(() => reader(data));
+    public Task<T> Read<T>(Func<TData, Task<T>> reader) => Worker.Factory.Run(() => reader(data));
 
-    public Task<T> Read<T>(Func<TData, T> reader) =>
-        Worker.Factory.Run(() => reader(data));
+    public Task<T> Read<T>(Func<TData, T> reader) => Worker.Factory.Run(() => reader(data));
 
     public Task Write(Func<TData, Task> modifier) =>
         Worker.Factory.Run(async () =>
@@ -92,7 +93,7 @@ public abstract class Repository<TData>(FileSystemHelper fileSystemHelper) : IOn
 
     public void Dispose()
     {
-        Dispose(true);
+        Dispose(disposing: true);
         GC.SuppressFinalize(this);
     }
 
@@ -109,12 +110,13 @@ public abstract class Repository<TData>(FileSystemHelper fileSystemHelper) : IOn
     {
         try
         {
-            var data = await Read(x => x.DeepClone());
+            var localData = await Read(x => x.DeepClone()).ConfigureAwait(false);
 
+            // TODO: why do we lock here?
             using (await saveLock.LockAsync())
             {
                 await using var stream = new MemoryStream();
-                await JsonSerializer.SerializeAsync(stream, data, jsonSerializerOptions);
+                await JsonSerializer.SerializeAsync(stream, localData, jsonSerializerOptions);
                 stream.Position = 0;
                 await fileSystemHelper.WriteToFile(FilePath, stream);
             }
